@@ -5,6 +5,7 @@
 import React from 'react'
 import { StyleSheet, View, TextInput, Button, Text, FlatList } from 'react-native'
 import films from '../Helpers/filmsData'
+import FilmItem from './FilmItem'
 
 
 class Search extends React.Component {
@@ -17,7 +18,9 @@ class Search extends React.Component {
          <FlatList
           data={films}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({item}) => <Text>{item.title}</Text>}
+         // renderItem={({item}) => <Text>{item.title}</Text>}
+         //equivalent à : class FilmItem { var film;} var filmItem = new FilmItem(); filmItem.film = item;
+          renderItem={({item}) => <FilmItem film={item}/>}
         />
       </View>
     )
