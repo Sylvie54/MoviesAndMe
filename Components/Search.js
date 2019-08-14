@@ -1,5 +1,3 @@
-/// Components/Search.js
-
 // Components/Search.js
 
 import React from 'react'
@@ -13,17 +11,19 @@ class Search extends React.Component {
 
   constructor(props) {
     super(props)
-    this.searchedText = ""
-    // Ici on va créer les propriétés de notre component custom Search
+     // Ici on va créer les propriétés de notre component custom Search
+    this.searchedText = ""  // vaut la valeur du texte saisi dans le TextInput
+    this.page = 0 // compteur page courante
+    this.totalPages = 0 // nb pages totales
     this.state = {
-      film: [],
+      films: [],
       isLoading: false 
     }
     //this._films = []
   }
 
   render() {
-    console.log(this.state.isLoading)
+    //console.log(this.state.isLoading)
     return (
       <View style={styles.main_container}>
         <TextInput
@@ -31,23 +31,29 @@ class Search extends React.Component {
           placeholder='Titre du film'
         //  onChangeText={(text) => this.searchedText = text} // fonctionne aussi
           onChangeText={(text) => this._searchTextInputChanged(text)}
-          onSubmitEditing={() => this._loadFilms()}
+          onSubmitEditing={() => this._searchFilms()}
         />
         <Button
          // color= '#006400'
-         // style={styles.boutonRech}
-          title='Rechercher' onPress={() =>  this._loadFilms()}/>
+        //  style={styles.boutonRech}
+          title='Rechercher' onPress={() =>  this._searchFilms()}/>
          {/* Ici j'ai simplement repris l'exemple sur la documentation de la FlatList */}
          
         <FlatList
          // data={this._films}
-         data={ this.state.film }
+         data={ this.state.films }
          // data={films}
           keyExtractor={(item) => item.id.toString()}
          // renderItem={({item}) => <Text>{item.title}</Text>}
          //equivalent à : class FilmItem { var film;} var filmItem = new FilmItem(); filmItem.film = item;
          // Les éléments (item) sont des objets de la classe FilmItem
           renderItem={({item}) => <FilmItem film={item}/>}
+          onEndReachedThreshold={0.5}
+          onEndReached={() => {
+            if (this.page < this.totalPages) { // On vérifie qu'on n'a pas atteint la fin de la pagination (totalPages) avant de charger plus d'éléments
+              this._loadFilms()
+            }
+          }}
         />
         {this._displayLoading()}
       </View>
@@ -55,18 +61,20 @@ class Search extends React.Component {
   }
 
   _loadFilms() {
-    console.log("fims recherchés : " + this.searchedText) // Un log pour vérifier qu'on a bien le texte du TextInput
+    //console.log("fims recherchés : " + this.searchedText + " page : " + this.page) // Un log pour vérifier qu'on a bien le texte du TextInput
     if (this.searchedText.length > 0) { // Seulement si le texte recherché n'est pas vide
     this.setState({ isLoading:true })
-    getFilmsFromApiWithSearchedText(this.searchedText).then(data => {
+    getFilmsFromApiWithSearchedText(this.searchedText, this.page+1).then(data => {
 
       //  getFilmsFromApiWithSearchedText("star").then(data => {
       //console.log(data)  
       //this._films = data.results
       // La méthode forceUpdate() permet de forcer un component à se rendre à nouveau
       //this.forceUpdate()
+      this.page = data.page
+      this.totalPages = data.total_pages
       this.setState({
-        film: data.results,
+        films: [ ...this.state.films, ...data.results ], // équivaut à une concaténation : films: this.state.films.concat(data.results)
         isLoading:false // arrêt du chargement de l'activityIndicator
       })
     })
@@ -88,6 +96,22 @@ class Search extends React.Component {
       )
     }
   }
+
+  _searchFilms() {
+    // Ici on va remettre à zéro les films de notre state
+    this.page = 0
+    this.totalPages = 0
+    this.setState({
+      films: [],
+    // paramètre de setState : une fonction callback qui attend que les compterus soient remis à zéro  pour lancer le log
+    // et la méthode _loadFilms  
+    }, () => {
+    
+    // J'utilise la paramètre length sur mon tableau de films pour vérifier qu'il y a bien 0 film
+    console.log("Page : " + this.page + " / TotalPages : " + this.totalPages + " / Nombre de films : " + this.state.films.length)
+    this._loadFilms()
+  })
+}
 
 
 }
@@ -117,7 +141,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   boutonRech: {
-    color: '#006400'
+    backgroundColor: '#006400'
   }
 
 })
