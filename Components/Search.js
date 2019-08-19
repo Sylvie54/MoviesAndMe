@@ -23,7 +23,7 @@ class Search extends React.Component {
   }
 
   render() {
-    //console.log(this.state.isLoading)
+   // console.log(this.props)
     return (
       <View style={styles.main_container}>
         <TextInput
@@ -47,7 +47,9 @@ class Search extends React.Component {
          // renderItem={({item}) => <Text>{item.title}</Text>}
          //equivalent à : class FilmItem { var film;} var filmItem = new FilmItem(); filmItem.film = item;
          // Les éléments (item) sont des objets de la classe FilmItem
-          renderItem={({item}) => <FilmItem film={item}/>}
+         // la variable varDisplayDetailForFilm pointe vers la fonction _displayDetailForFilm. On passe la fonction en paramètre au
+         // composant  FilmItem
+          renderItem={({item}) => <FilmItem film={item} varDisplayDetailForFilm={this._displayDetailForFilm}/>  }
           onEndReachedThreshold={0.5}
           onEndReached={() => {
             if (this.page < this.totalPages) { // On vérifie qu'on n'a pas atteint la fin de la pagination (totalPages) avant de charger plus d'éléments
@@ -60,6 +62,7 @@ class Search extends React.Component {
     )
   }
 
+  // appel de l'API avec le texte tapé et le numéro de page
   _loadFilms() {
     //console.log("fims recherchés : " + this.searchedText + " page : " + this.page) // Un log pour vérifier qu'on a bien le texte du TextInput
     if (this.searchedText.length > 0) { // Seulement si le texte recherché n'est pas vide
@@ -81,10 +84,12 @@ class Search extends React.Component {
    } 
   }
 
+  // remplissage de la variable avec le texte tapé dans le TextInput
   _searchTextInputChanged(text) {
     this.searchedText = text
   }
 
+  // ActivityIndicator, élément visuel permettant de voir que l'on est en attente
   _displayLoading() {
     if (this.state.isLoading) {
       return (
@@ -97,6 +102,7 @@ class Search extends React.Component {
     }
   }
 
+  // remise à zéro des films du state
   _searchFilms() {
     // Ici on va remettre à zéro les films de notre state
     this.page = 0
@@ -113,6 +119,14 @@ class Search extends React.Component {
   })
 }
 
+// visulalisation du détail du film sélectionné 
+// = (idfilm) est le paramètre de la fonction _displayDetailForFilm qui sera appelée dans le composent FilmItem et 
+// qui aura en paramètre l'id du film qui aura été "cliqué"
+_displayDetailForFilm = (idFilm) => {
+  // console.log("Display film with id " + idFilm)
+  this.props.navigation.navigate("FilmDetail", { varIdFilm: idFilm })
+}
+
 
 }
 
@@ -120,7 +134,7 @@ class Search extends React.Component {
 const styles = StyleSheet.create({
   main_container: {
     flex: 1,
-    marginTop: 20
+   // marginTop: 20 inutile avec le StackNavigator
   },
   textinput: {
     marginLeft: 5,
